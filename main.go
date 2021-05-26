@@ -9,11 +9,22 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type jsonData struct {
-	Number int    `json:"number,omitempty`
-	String string `json:"string,omitempty`
-	Bool   bool   `json:"bool,omitempty`
-}
+type (
+	jsonData struct {
+		Number int    `json:"number,omitempty`
+		String string `json:"string,omitempty`
+		Bool   bool   `json:"bool,omitempty`
+	}
+
+	AddRequest struct {
+		Right int `json:"right"`
+		Left  int `json:"left"`
+	}
+
+	AddResponse struct {
+		Answer int
+	}
+)
 
 func main() {
 	e := echo.New()
@@ -23,20 +34,18 @@ func main() {
 	})
 
 	e.GET("/hello/:username", helloHandler)
-
 	e.GET("/lum1narie", func(c echo.Context) error {
 		return c.String(http.StatusOK, "@lum1narieです、こんにちは\n汝、キーボードを愛せよ\n")
 	})
 
 	e.GET("/json", jsonHandler)
-
 	e.POST("/post", postHandler)
 
 	e.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong\n")
 	})
-
 	e.GET("/fizzbuzz", fizzBuzzHandler)
+	e.POST("/add", addHandler)
 
 	e.Logger.Fatal(e.Start(":10100"))
 }
@@ -52,10 +61,9 @@ func jsonHandler(c echo.Context) error {
 }
 
 func postHandler(c echo.Context) error {
-	data := new(jsonData)
-	err := c.Bind(data)
+	data := &jsonData{}
 
-	if err != nil {
+	if err := c.Bind(data); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("%+v", data))
 	}
 	return c.JSON(http.StatusOK, data)
@@ -93,4 +101,18 @@ func fizzBuzzHandler(c echo.Context) error {
 	}
 
 	return c.String(http.StatusOK, strings.Join(lines, "\n"))
+}
+
+func addHandler(c echo.Context) error {
+	addReq := &AddRequest{}
+
+	if err := c.Bind(addReq); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Bad Request")
+	}
+
+	addRes := &AddResponse{
+		Answer: addReq.Left + addReq.Right,
+	}
+
+	return c.JSON(http.StatusOK, addRes)
 }
