@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -24,9 +25,48 @@ type (
 	AddResponse struct {
 		Answer int
 	}
+
+	Class struct {
+		ClassNumber int        `json:"class_number"`
+		Students    []*Student `json:"students"`
+	}
+
+	Student struct {
+		StudentNumber int    `json:"student_number"`
+		Name          string `json:"name"`
+	}
+)
+
+var (
+	ClassesJson = []byte(`[
+  {"class_number": 1, "students": [
+    {"student_number": 1, "name": "Humming"},
+    {"student_number": 2, "name": "masutech16"},
+    {"student_number": 3, "name": "ninja"}
+  ]},
+  {"class_number": 2, "students": [
+    {"student_number": 1, "name": "hukuda222"},
+    {"student_number": 2, "name": "takashi_trap"},
+    {"student_number": 3, "name": "nagatech"},
+    {"student_number": 4, "name": "whiteonion"}
+  ]},
+  {"class_number": 3, "students": [
+    {"student_number": 1, "name": "yamada"},
+    {"student_number": 2, "name": "tubotu"},
+    {"student_number": 3, "name": "tsukatomo"}
+  ]},
+  {"class_number": 4, "students": [
+    {"student_number": 1, "name": "g2"},
+    {"student_number": 2, "name": "hatasa-y"}
+  ]}
+]`)
+	classes *[]Class = &[]Class{}
 )
 
 func main() {
+
+	json.Unmarshal(ClassesJson, classes)
+
 	e := echo.New()
 
 	e.GET("/hello", func(c echo.Context) error {
@@ -46,6 +86,7 @@ func main() {
 	})
 	e.GET("/fizzbuzz", fizzBuzzHandler)
 	e.POST("/add", addHandler)
+	e.GET("/students/:class/:studentNumber", getStudentHandler)
 
 	e.Logger.Fatal(e.Start(":10100"))
 }
@@ -115,4 +156,40 @@ func addHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, addRes)
+}
+
+func getStudentHandler(c echo.Context) error {
+	httpErrStudent := echo.NewHTTPError(http.StatusBadRequest, "Student Not Found")
+	classNumber, err := strconv.Atoi(c.Param("class"))
+	if err != nil {
+		return httpErrStudent
+	}
+	studentNumber, err := strconv.Atoi(c.Param("studentNumber"))
+	if err != nil {
+		return httpErrStudent
+	}
+
+	var class *Class = nil
+	for _, c := range *classes {
+		if c.ClassNumber == classNumber {
+			class = &c
+			break
+		}
+	}
+	if class == nil {
+		return httpErrStudent
+	}
+
+	var student *Student = nil
+	for _, s := range class.Students {
+		if s.StudentNumber == studentNumber {
+			student = s
+			break
+		}
+	}
+	if student == nil {
+		return httpErrStudent
+	}
+
+	return c.JSON(http.StatusOK, student)
 }
