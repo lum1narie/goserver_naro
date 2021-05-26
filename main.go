@@ -75,7 +75,7 @@ func fizzBuzzHandler(c echo.Context) error {
 	count, err := strconv.Atoi(countStr)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("%+v", countStr))
+		return echo.NewHTTPError(http.StatusBadRequest, "Bad Request")
 	}
 
 	lines := []string{}
