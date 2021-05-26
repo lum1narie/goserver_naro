@@ -18,6 +18,9 @@ func main() {
 	e.GET("/hello", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, world.\n")
 	})
+
+	e.GET("/hello/:username", helloHandler)
+
 	e.GET("/lum1narie", func(c echo.Context) error {
 		return c.String(http.StatusOK, "@lum1narieです、こんにちは\n汝、キーボードを愛せよ\n")
 	})
@@ -47,4 +50,9 @@ func postHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, data)
 	}
 	return c.JSON(http.StatusOK, data)
+}
+
+func helloHandler(c echo.Context) error {
+	userID := c.Param("username")
+	return c.String(http.StatusOK, "Hello, "+userID+".\n")
 }
