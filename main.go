@@ -24,6 +24,8 @@ func main() {
 
 	e.GET("/json", jsonHandler)
 
+	e.POST("/post", postHandler)
+
 	e.Logger.Fatal(e.Start(":10100"))
 }
 
@@ -37,3 +39,12 @@ func jsonHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, &res)
 }
 
+func postHandler(c echo.Context) error {
+	data := new(jsonData)
+	err := c.Bind(data)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, data)
+	}
+	return c.JSON(http.StatusOK, data)
+}
