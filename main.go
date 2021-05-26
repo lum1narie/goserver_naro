@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -29,6 +32,12 @@ func main() {
 
 	e.POST("/post", postHandler)
 
+	e.GET("/ping", func(c echo.Context) error {
+		return c.String(http.StatusOK, "pong\n")
+	})
+
+	e.GET("/fizzbuzz", fizzBuzzHandler)
+
 	e.Logger.Fatal(e.Start(":10100"))
 }
 
@@ -47,7 +56,7 @@ func postHandler(c echo.Context) error {
 	err := c.Bind(data)
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, data)
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("%+v", data))
 	}
 	return c.JSON(http.StatusOK, data)
 }
@@ -55,4 +64,33 @@ func postHandler(c echo.Context) error {
 func helloHandler(c echo.Context) error {
 	userID := c.Param("username")
 	return c.String(http.StatusOK, "Hello, "+userID+".\n")
+}
+
+func fizzBuzzHandler(c echo.Context) error {
+	countStr := c.QueryParam("count")
+
+	if countStr == "" {
+		countStr = "30"
+	}
+	count, err := strconv.Atoi(countStr)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("%+v", countStr))
+	}
+
+	lines := []string{}
+	for i := 1; i <= count; i++ {
+		if i%15 == 0 {
+			lines = append(lines, "FizzBuzz")
+		} else if i%3 == 0 {
+			lines = append(lines, "Fizz")
+		} else if i%5 == 0 {
+			lines = append(lines, "Buzz")
+		} else {
+			strI := strconv.Itoa(i)
+			lines = append(lines, strI)
+		}
+	}
+
+	return c.String(http.StatusOK, strings.Join(lines, "\n"))
 }
